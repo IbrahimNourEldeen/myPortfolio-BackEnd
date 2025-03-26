@@ -1,0 +1,23 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+
+# Cache and build files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+build/
+
+# VS Code settings
+.vscode/
+
+# Dependencies installed by package managers
+package-lock.json
+yarn.lock
