@@ -5,8 +5,7 @@ const userSchema = mongoose.Schema({
     username: {
         type: String,
         required: 1,
-        unique: true,
-        validate: [validator.isEmpty, "name is required"]
+        unique: true
     },
     email: {
         type: String,
@@ -16,8 +15,7 @@ const userSchema = mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
-        validate: [validator.isEmpty, "password is required"]
+        required: true
     },
     token: {
         type: String,
@@ -25,7 +23,7 @@ const userSchema = mongoose.Schema({
     },
     createdAt: {
         type: Date,
-        validate: [validator.isDate, "must be a valid date"]
+        default:Date.now
     }
 });
 
