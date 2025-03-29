@@ -1,10 +1,30 @@
 const jwt =require('jsonwebtoken')
 
-module.exports= (payload)=>{
-    const token = jwt.sign(
+// module.exports= (payload)=>{
+//     const token = jwt.sign(
+//         payload,
+//         process.env.SEKRET_KEY,
+//         {expiresIn:"10m"}
+//     )
+//     return token
+// }
+const generateAccessToken = (payload)=>{
+    return jwt.sign(
         payload,
         process.env.SEKRET_KEY,
-        {expiresIn:"10m"}
+        {expiresIn:"1m"}
     )
-    return token
+}
+
+const generateRefreshToken = (payload)=>{
+    return jwt.sign(
+        payload,
+        process.env.REFRESH_SEKRET_KEY,
+        {expiresIn:"10d"}
+    )
+}
+
+module.exports = {
+    generateAccessToken,
+    generateRefreshToken
 }

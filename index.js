@@ -1,5 +1,5 @@
-const express = require('express')
 require('dotenv').config();
+const express = require('express')
 
 const path = require('path')
 
@@ -9,6 +9,7 @@ const app = express();
 const projectsRoutes = require('./routes/projects.route')
 const contactsRoutes = require('./routes/contacts.route')
 const usersRoutes = require('./routes/users.route')
+const token = require('./routes/token.route')
 
 app.use(express.json())
 
@@ -24,6 +25,8 @@ app.use("/api/projects", projectsRoutes);
 app.use("/api/contacts", contactsRoutes);
 
 app.use("/api/users", usersRoutes)
+
+app.use("/api", token)
 
 app.listen(process.env.PORT, () => {
     console.log('listening on port 2020')

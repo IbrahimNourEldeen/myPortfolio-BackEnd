@@ -17,9 +17,13 @@ const userSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    token: {
+    refreshToken: {
         type: String,
         required: true
+    },
+    role: {
+        type: String,
+        default:'admin'
     },
     createdAt: {
         type: Date,

@@ -3,17 +3,19 @@ const { getAllProjects, getProject, addProject, updateProject, deleteProject, de
 
 const router= express.Router();
 
+const verifyToken = require('../middleware/verifyToken')
+const allowedToAdmin = require('../middleware/allowedToAdmin')
 
 router.route('/')
     .get(getAllProjects)
-    .post(addProject)
-    .delete(deleteAllProjects)
+    .post(verifyToken, allowedToAdmin, addProject)
+    .delete(verifyToken, allowedToAdmin, deleteAllProjects)
 
 
 router.route('/:projectId')
     .get(getProject)
-    .put(updateProject)
-    .delete(deleteProject)
+    .put(verifyToken, allowedToAdmin, updateProject)
+    .delete(verifyToken, allowedToAdmin, deleteProject)
 
 
 

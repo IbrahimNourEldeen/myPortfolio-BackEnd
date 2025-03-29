@@ -1,6 +1,6 @@
 const User = require('../models/user.model')
-const generateJwt = require('../utils/generateJwt')
-const bcrypt = require('bcryptjs') 
+const { generateAccessToken, generateRefreshToken } = require('../utils/generateJwt')
+const bcrypt = require('bcryptjs')
 
 const getAllUsers = async (req, res) => {
     try {
@@ -10,7 +10,7 @@ const getAllUsers = async (req, res) => {
 
         const skip = (page - 1) * limit;
 
-        const users = await User.find({}, { __v: 0 }).limit(limit).skip(skip);
+        const users = await User.find({}, { __v: 0, refreshToken: 0 }).limit(limit).skip(skip);
         res.status(200).json({
             status: 'success',
             data: {
@@ -26,7 +26,7 @@ const getAllUsers = async (req, res) => {
 const getUser = async (req, res) => {
     try {
         const { userId } = req.params;
-        const user = await User.findById(userId, { __v: 0 })
+        const user = await User.findById(userId, { __v: 0, refreshToken: 0 })
 
         if (!user) {
             return res.status(404).json({
@@ -134,7 +134,7 @@ const deleteAllUsers = async (req, res) => {
 const register = async (req, res) => {
     try {
         const { username, email, password } = req.body;
-        
+
         if (!username || !email || !password) {
             return res.status(400).json({ status: "fail", data: { message: "All fields are required" } });
         }
@@ -153,13 +153,14 @@ const register = async (req, res) => {
             password: hashedPassword
         })
 
-        const token = generateJwt({ username: newUser.username, email: newUser.email });
-        newUser.token = token;
+        const accessToken = generateAccessToken({ username: newUser.username, email: newUser.email, role: newUser.role });
+        const refreshToken = generateRefreshToken({ username: newUser.username, email: newUser.email, role: newUser.role });
+        newUser.refreshToken = refreshToken;
 
         await newUser.save();
 
-        res.status(201).json({ status: 'success', data: { token } })
-        
+        res.status(201).json({ status: 'success', data: { accessToken, refreshToken } })
+
     } catch (error) {
         console.error("Login Error:", error.message);
 
@@ -178,18 +179,23 @@ const login = async (req, res) => {
             return res.status(400).json({ status: 'fail', data: { message: 'email and password are required' } })
         }
 
-        const user = await User.findOne({email});
+        const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ status: "fail", data: { message: 'this email is not registerd' } })
         }
 
         const matchedPassword = await bcrypt.compare(password, user.password);
-        if(!matchedPassword){
+        if (!matchedPassword) {
             return res.status(401).json({ status: "fail", data: { message: "Invalid email or password" } });
         }
 
-        const token = generateJwt({ username: user.username, _id:user._id , email: user.email });
-        return res.status(200).json({ status: 'success', data: { token } })
+        const accessToken = generateAccessToken({ username: user.username, email: user.email, role: user.role });
+
+        const refreshToken = generateRefreshToken({ username: user.username, email: user.email, role: user.role });
+        console.log("User ID:", user._id);
+        await User.findByIdAndUpdate(user._id, { refreshToken });
+
+        return res.status(200).json({ status: 'success', data: { accessToken, refreshToken } })
 
 
     } catch (error) {
