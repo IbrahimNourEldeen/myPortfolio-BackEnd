@@ -153,8 +153,8 @@ const register = async (req, res) => {
             password: hashedPassword
         })
 
-        const accessToken = generateAccessToken({ username: newUser.username, email: newUser.email, role: newUser.role });
-        const refreshToken = generateRefreshToken({ username: newUser.username, email: newUser.email, role: newUser.role });
+        const accessToken = generateAccessToken({ username: newUser.username, email: newUser.email, role: newUser.role, id:newUser._id });
+        const refreshToken = generateRefreshToken({ username: newUser.username, email: newUser.email, role: newUser.role, id:newUser._id });
         newUser.refreshToken = refreshToken;
 
         await newUser.save();
@@ -189,9 +189,9 @@ const login = async (req, res) => {
             return res.status(401).json({ status: "fail", data: { message: "Invalid email or password" } });
         }
 
-        const accessToken = generateAccessToken({ username: user.username, email: user.email, role: user.role });
+        const accessToken = generateAccessToken({ username: user.username, email: user.email, role: user.role, id: user._id });
 
-        const refreshToken = generateRefreshToken({ username: user.username, email: user.email, role: user.role });
+        const refreshToken = generateRefreshToken({ username: user.username, email: user.email, role: user.role, id: user._id });
         console.log("User ID:", user._id);
         await User.findByIdAndUpdate(user._id, { refreshToken });
 

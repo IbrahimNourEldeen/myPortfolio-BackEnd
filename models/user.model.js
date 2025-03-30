@@ -25,6 +25,10 @@ const userSchema = mongoose.Schema({
         type: String,
         default:'admin'
     },
+    CVFile: {
+        type: String,
+        default: null,
+    },
     createdAt: {
         type: Date,
         default:Date.now
