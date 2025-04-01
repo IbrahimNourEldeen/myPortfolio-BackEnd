@@ -9,6 +9,7 @@ const contactsRoutes = require('./routes/contacts.route')
 const usersRoutes = require('./routes/users.route')
 const token = require('./routes/token.route')
 const cv = require('./routes/cv.route')
+const avatar = require('./routes/avatar.route')
 
 
 app.use('/uploads',express.static(path.join(__dirname,'uploads')));
@@ -31,6 +32,8 @@ app.use("/api/users", usersRoutes)
 app.use("/api", token)
 
 app.use('/api/cv',cv)
+
+app.use('/api',avatar)
 
 app.listen(process.env.PORT, () => {
     console.log('listening on port 2020')

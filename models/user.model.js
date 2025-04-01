@@ -29,6 +29,10 @@ const userSchema = mongoose.Schema({
         type: String,
         default: null,
     },
+    avatar: {
+        type: String,
+        default: 'uploads/avatar/img.jpg'
+    },
     createdAt: {
         type: Date,
         default:Date.now

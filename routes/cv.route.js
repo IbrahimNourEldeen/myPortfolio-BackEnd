@@ -8,14 +8,14 @@ const path = require('path');
 const verifyToken = require('../middleware/verifyToken')
 const allowedToAdmin = require('../middleware/allowedToAdmin')
 
-const uploadDir = path.join(__dirname, '../uploads');
+const uploadDir = path.join(__dirname, '../uploads/cv');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 const distStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads'); 
+        cb(null, 'uploads/cv'); 
     },
     filename: function (req, file, cb) {
         const ext = path.extname(file.originalname); 
@@ -37,7 +37,7 @@ const upload = multer({
     fileFilter: fileFilter,
 });
 
-router.route('/upload')
+router.route('/upload/file')
     .put(verifyToken, allowedToAdmin, upload.single('CVFile'), updateFile)
 
 router.route('/download/:id')

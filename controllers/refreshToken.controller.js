@@ -22,7 +22,8 @@ module.exports = async (req, res) => {
             const newAccessToken = generateAccessToken({
                 username: decoded.username,
                 email: decoded.email,
-                role: decoded.role
+                role: decoded.role,
+                id:decoded.id
             });
 
             res.status(200).json({ status: "success", data: { refreshToken, accessToken: newAccessToken } });
