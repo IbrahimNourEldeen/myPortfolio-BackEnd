@@ -22,38 +22,52 @@ const updateFile = async (req, res) => {
         const fileExt = path.extname(req.file.originalname).toLowerCase();
         
         if (!allowedExtensions.includes(fileExt)) {
-            return res.status(400).json({ status: 'fail', message: 'Invalid file type' });
+            return res.status(400).json({ status: 'fail', message: 'Invalid file type. Allowed types are: .pdf, .doc, .docx' });
         }
 
         if (user.CVFile) {
             const oldFilePath = path.join(__dirname, '..', user.CVFile);
-            fs.unlink(oldFilePath).catch(err => console.error("Error deleting old file:", err));
+            try {
+                await fs.unlink(oldFilePath);
+            } catch (err) {
+                console.error("Error deleting old file:", err);
+            }
         }
 
         user.CVFile = `uploads/cv/${req.file.filename}`;
         await user.save();
 
-        res.status(200).json({ status: 'success', message: 'CV updated successfully', data: { file: user.CVFile } });
+        res.status(200).json({ 
+            status: 'success', 
+            message: 'CV updated successfully', 
+            data: { file: user.CVFile } 
+        });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ status: 'error', message: 'Server error' });
+        console.error("Error updating CV:", error);
+        res.status(500).json({ status: 'error', message: 'Server error', error: error.message });
     }
 };
 
 const downloadCV = async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
+
         if (!user || !user.CVFile) {
             return res.status(404).json({ status: 'fail', message: 'CV not found' });
         }
 
         const filePath = path.join(__dirname, '..', user.CVFile);
-        
+
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({ status: 'fail', message: 'CV file not found on server' });
+        }
+
         res.download(filePath);
+
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ status: 'error', message: 'Internal server error' });
+        console.error("Error downloading CV:", error);
+        res.status(500).json({ status: 'error', message: 'Internal server error', error: error.message });
     }
 };
 

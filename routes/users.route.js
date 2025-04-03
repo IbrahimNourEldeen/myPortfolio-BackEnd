@@ -1,5 +1,5 @@
 const express = require('express');
-const { getAllUsers, getUser, addUser,updateUser, deleteUser, deleteAllUsers, register, login } = require('../controllers/users.controller');
+const { getAllUsers, getUser, addUser, updateUser, deleteUser, deleteAllUsers, register, login, logOut } = require('../controllers/users.controller');
 
 const verifyToken = require('../middleware/verifyToken')
 const allowedToAdmin = require('../middleware/allowedToAdmin')
@@ -17,8 +17,9 @@ router.route('/:userId')
     .put(verifyToken, allowedToAdmin, updateUser)
     .delete(verifyToken, allowedToAdmin, deleteUser)
 
-router.post('/register',register)    
-router.post('/login',login)    
+router.post('/register', register)
+router.post('/login', login)
+router.post('/logout', verifyToken, logOut)
 
 
 module.exports = router;

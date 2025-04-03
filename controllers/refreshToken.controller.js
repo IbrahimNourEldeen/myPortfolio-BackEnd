@@ -5,32 +5,53 @@ const { generateAccessToken } = require('../utils/generateJwt');
 module.exports = async (req, res) => {
     try {
         const { refreshToken } = req.body;
+
         if (!refreshToken) {
-            return res.status(401).json({ status: "error", message: "Unauthorized" });
+            return res.status(401).json({
+                status: "fail",
+                message: "Refresh token is required"
+            });
         }
 
-        jwt.verify(refreshToken, process.env.REFRESH_SEkRET_KEY, async (err, decoded) => {
+        jwt.verify(refreshToken, process.env.REFRESH_SEKRET_KEY, async (err, decoded) => {
             if (err) {
-                return res.status(403).json({ status: "error", message: "Invalid Refresh Token" });
+                return res.status(403).json({
+                    status: "fail",
+                    message: "Invalid or expired refresh token"
+                });
             }
 
             const user = await User.findOne({ email: decoded.email });
             if (!user || user.refreshToken !== refreshToken) {
-                return res.status(403).json({ status: "error", message: "Invalid Refresh Token" });
+                return res.status(403).json({
+                    status: "fail",
+                    message: "Invalid refresh token"
+                });
             }
 
             const newAccessToken = generateAccessToken({
                 username: decoded.username,
                 email: decoded.email,
                 role: decoded.role,
-                id:decoded.id
+                id: decoded.id
             });
 
-            res.status(200).json({ status: "success", data: { refreshToken, accessToken: newAccessToken } });
+            return res.status(200).json({
+                status: "success",
+                data: {
+                    accessToken: newAccessToken,
+                    refreshToken: refreshToken 
+                }
+            });
         });
 
     } catch (error) {
         console.error("Error refreshing token:", error);
-        res.status(500).json({ status: "error", message: "Internal Server Error" });
+
+        return res.status(500).json({
+            status: "error",
+            message: "Internal server error",
+            error: error.message
+        });
     }
 };
