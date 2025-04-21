@@ -30,9 +30,6 @@ mongoose.connect(process.env.URL).then(() => {
 
 
 app.use("/api/projects", projectsRoutes);
-app.use("/", (req,res)=>{
-    res.send("hello")
-})
 
 app.use("/api/contacts", contactsRoutes);
 
@@ -46,6 +43,10 @@ app.use('/api',avatar)
 
 app.use('/api',availableData)
 
+
+app.use("/", (req,res)=>{
+    res.send("hello")
+})
 app.listen(process.env.PORT, () => {
     console.log('listening on port 2020')
 })
