@@ -1,30 +1,30 @@
 const mongoose = require('mongoose');
-const validator=require('validator')
-
 const projectSchema = mongoose.Schema({
+    adminId: {
+        type: mongoose.Types.ObjectId,
+        ref: "user",
+        required: true
+    },
     title: {
         type: String,
-        required: 1,
     },
     description: {
         type: String,
-        required: 1,
     },
     technologies: {
         type: [String],
-        required: true,
     },
-    repo: {
+    types:String,
+    githubRepo: {
         type: String,
-        required: 1,
     },
-    demo: {
-        type: String,
-        required: 1,
+    liveDemo: String,
+    poster: {
+        type: [String],
     },
     createdAt: {
         type: Date,
-        default:Date.now,
+        default: Date.now,
     }
 });
 

@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express')
-
+const cors = require('cors');
 const path = require('path')
 const app = express();
 
@@ -10,6 +10,12 @@ const usersRoutes = require('./routes/users.route')
 const token = require('./routes/token.route')
 const cv = require('./routes/cv.route')
 const avatar = require('./routes/avatar.route')
+const availableData = require('./routes/availableData.route')
+
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true 
+  }));
 
 
 app.use('/uploads',express.static(path.join(__dirname,'uploads')));
@@ -24,6 +30,9 @@ mongoose.connect(process.env.URL).then(() => {
 
 
 app.use("/api/projects", projectsRoutes);
+app.use("/", (req,res)=>{
+    res.send("hello")
+})
 
 app.use("/api/contacts", contactsRoutes);
 
@@ -34,6 +43,8 @@ app.use("/api", token)
 app.use('/api/cv',cv)
 
 app.use('/api',avatar)
+
+app.use('/api',availableData)
 
 app.listen(process.env.PORT, () => {
     console.log('listening on port 2020')

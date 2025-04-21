@@ -9,7 +9,6 @@ const messageSchema = mongoose.Schema({
     email: {
         type: String,
         required: 1,
-        unique: true,
         validate: [validator.isEmail, "must be a valid email"]
     },
     message: {

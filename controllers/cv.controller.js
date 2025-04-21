@@ -20,7 +20,7 @@ const updateFile = async (req, res) => {
 
         const allowedExtensions = ['.pdf', '.doc', '.docx'];
         const fileExt = path.extname(req.file.originalname).toLowerCase();
-        
+
         if (!allowedExtensions.includes(fileExt)) {
             return res.status(400).json({ status: 'fail', message: 'Invalid file type. Allowed types are: .pdf, .doc, .docx' });
         }
@@ -37,10 +37,10 @@ const updateFile = async (req, res) => {
         user.CVFile = `uploads/cv/${req.file.filename}`;
         await user.save();
 
-        res.status(200).json({ 
-            status: 'success', 
-            message: 'CV updated successfully', 
-            data: { file: user.CVFile } 
+        res.status(200).json({
+            status: 'success',
+            message: 'CV updated successfully',
+            data: { file: user.CVFile }
         });
 
     } catch (error) {
@@ -59,11 +59,18 @@ const downloadCV = async (req, res) => {
 
         const filePath = path.join(__dirname, '..', user.CVFile);
 
-        if (!fs.existsSync(filePath)) {
+        try {
+            await fs.access(filePath);
+        } catch (err) {
             return res.status(404).json({ status: 'fail', message: 'CV file not found on server' });
         }
 
-        res.download(filePath);
+        res.download(filePath, (err) => {
+            if (err) {
+                console.error("Error during file download:", err);
+                return res.status(500).json({ status: 'error', message: 'Error downloading file' });
+            }
+        });
 
     } catch (error) {
         console.error("Error downloading CV:", error);

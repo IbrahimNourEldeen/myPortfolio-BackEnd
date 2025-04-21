@@ -5,7 +5,6 @@ const userSchema = mongoose.Schema({
     username: {
         type: String,
         required: 1,
-        unique: true
     },
     email: {
         type: String,
@@ -33,10 +32,6 @@ const userSchema = mongoose.Schema({
         type: String,
         default: 'uploads/avatar/img.jpg'
     },
-    createdAt: {
-        type: Date,
-        default:Date.now
-    }
 });
 
 module.exports = mongoose.model("user", userSchema);
