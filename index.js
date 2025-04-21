@@ -13,7 +13,7 @@ const avatar = require('./routes/avatar.route')
 const availableData = require('./routes/availableData.route')
 
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: '*',
     credentials: true 
   }));
 
