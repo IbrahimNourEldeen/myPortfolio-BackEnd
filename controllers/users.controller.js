@@ -2,45 +2,6 @@ const User = require('../models/user.model')
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateJwt')
 const bcrypt = require('bcryptjs')
 
-const getAllUsers = async (req, res) => {
-    try {
-        const query = req.query;
-        const limit = parseInt(query.limit) || 20;
-        const page = parseInt(query.page) || 1;
-
-        if (limit <= 0 || page <= 0) {
-            return res.status(400).json({
-                status: 'fail',
-                message: "Invalid limit or page number"
-            });
-        }
-
-        const skip = (page - 1) * limit;
-
-        const users = await User.find({}, { __v: 0, refreshToken: 0 })
-            .limit(limit)
-            .skip(skip);
-
-        res.status(200).json({
-            status: 'success',
-            data: {
-                users,
-                total: users.length,
-                page,
-                limit
-            }
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            status: 'error',
-            message: "Server error",
-            error: error.message
-        });
-    }
-};
-
-
 const getUser = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -73,52 +34,6 @@ const getUser = async (req, res) => {
             status: 'error',
             message: "Server error",
             error: error.message
-        });
-    }
-};
-
-
-const addUser = async (req, res) => {
-    try {
-        if (!req.body || Object.keys(req.body).length === 0) {
-            return res.status(400).json({
-                status: "fail",
-                message: "Request body cannot be empty"
-            });
-        }
-
-        const newUser = new User(req.body);
-        await newUser.save();
-
-        return res.status(201).json({
-            status: "success",
-            message: "User added successfully",
-            data: {
-                userId: newUser._id
-            }
-        });
-
-    } catch (err) {
-        if (err.name === "ValidationError") {
-            return res.status(400).json({
-                status: "fail",
-                message: "Invalid input data",
-                errors: Object.values(err.errors).map(e => e.message)
-            });
-        }
-
-        if (err.code === 11000) {
-            return res.status(400).json({
-                status: "fail",
-                message: "Duplicate field value",
-                field: Object.keys(err.keyValue)[0]
-            });
-        }
-
-        return res.status(500).json({
-            status: "error",
-            message: "Server error",
-            error: err.message
         });
     }
 };
@@ -183,35 +98,6 @@ const deleteUser = async (req, res) => {
         });
     }
 };
-
-
-const deleteAllUsers = async (req, res) => {
-    try {
-        const usersCount = await User.countDocuments();
-        if (usersCount === 0) {
-            return res.status(404).json({
-                status: "fail",
-                message: "No users found to delete"
-            });
-        }
-
-        await User.deleteMany({});
-
-        return res.status(200).json({
-            status: "success",
-            message: "All users deleted successfully"
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            status: "error",
-            message: "Server error",
-            error: error.message
-        });
-    }
-};
-
-
 const register = async (req, res) => {
     try {
         const { username, email, password } = req.body;
@@ -224,11 +110,18 @@ const register = async (req, res) => {
         }
 
         const oldUser = await User.findOne({ email });
-
         if (oldUser) {
             return res.status(400).json({
                 status: "fail",
                 message: "User already exists"
+            });
+        }
+        
+        const userCount = await User.countDocuments();
+        if (userCount >= 2) {
+            return res.status(400).json({
+                status: "fail",
+                message: "Cannot add more than two accounts"
             });
         }
 
@@ -276,6 +169,7 @@ const register = async (req, res) => {
         });
     }
 };
+
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -367,14 +261,10 @@ const logOut = async (req, res) => {
     }
 };
 
-
 module.exports = {
-    getAllUsers,
     getUser,
-    addUser,
     updateUser,
     deleteUser,
-    deleteAllUsers,
     register,
     login,
     logOut

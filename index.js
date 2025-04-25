@@ -11,6 +11,11 @@ const token = require('./routes/token.route')
 const cv = require('./routes/cv.route')
 const avatar = require('./routes/avatar.route')
 const availableData = require('./routes/availableData.route')
+const skillRoutes = require('./routes/skills.route')
+const socialRoutes = require("./routes/social.route")
+const herroRoutes = require("./routes/herro.route")
+const experienceRoutes=require('./routes/experiences.route')
+const educationRoutes=require('./routes/education.route')
 
 app.use(cors({
     origin: '*',
@@ -43,10 +48,16 @@ app.use('/api',avatar)
 
 app.use('/api',availableData)
 
+app.use('/api/skills', skillRoutes)
 
-app.use("/", (req,res)=>{
-    res.send("hello")
-})
+app.use('/api/social', socialRoutes)
+
+app.use('/api/herro', herroRoutes)
+
+app.use('/api/exp', experienceRoutes)
+
+app.use('/api/edu', educationRoutes)
+
 app.listen(process.env.PORT, () => {
     console.log('listening on port 2020')
 })
