@@ -1,122 +1,48 @@
-const Project = require('../models/user.model')
+const path = require('path');
+const fs = require('fs/promises');
+const User = require('../models/user.model');
 
-const getAllProjects = async (req, res) => {
-    try {
-        const query = req.query;
-        const limit = query.limit || 10;
-        const page = query.page || 1;
-
-        const skip = (page - 1) * limit;
-
-        const projects = await Project.find({}, { __v: 0 }).limit(limit).skip(skip);
-
-        if (projects.length === 0) {
-            return res.status(404).json({
-                status: 'fail',
-                message: 'No projects found'
-            });
-        }
-
-        return res.status(200).json({
-            status: 'success',
-            data: {
-                projects
-            }
-        });
-    } catch (err) {
-        console.error("Error fetching projects:", err.message);
-        return res.status(500).json({
-            status: 'error',
-            message: "Server error",
-            error: err.message
-        });
-    }
-}
-
-const getProject = async (req, res) => {
-    try {
-        const { projectId } = req.params;
-        const project = await Project.findById(projectId, { __v: false });
-
-        if (!project) {
-            return res.status(404).json({
-                status: 'fail',
-                message: 'Project not found'
-            });
-        }
-
-        return res.status(200).json({
-            status: 'success',
-            data: {
-                project
-            }
-        });
-    } catch (err) {
-        console.error("Error fetching project:", err.message);
-        return res.status(500).json({
-            status: 'error',
-            message: 'Error in server',
-            error: err.message
-        });
-    }
-}
 const addProject = async (req, res) => {
     try {
-        const newProject = new Project(req.body);
+        const { title, description, technologies, types, githubRepo, liveDemo } = req.body;
 
-        await newProject.save();
+        const userId = req.currentUser?.id;
+        if (!userId) {
+            return res.status(401).json({ status: 'fail', message: 'Unauthorized' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ status: 'fail', message: 'User not found' });
+        }
+
+        const posterPaths = req.files.map(file => `/uploads/projects/${file.filename}`);
+
+        const newProject = {
+            title,
+            description,
+            technologies: Array.isArray(technologies) ? technologies : technologies.split(',').map(tech => tech.trim()),
+            types,
+            githubRepo,
+            liveDemo,
+            poster: posterPaths,
+            createdAt: new Date()
+        };
+
+        user.projects.push(newProject);
+        await user.save();
 
         return res.status(201).json({
             status: 'success',
-            data: {
-                message: 'Project added successfully'
-            }
-        });
-
-    } catch (err) {
-
-        if (err.name === "ValidationError") {
-            return res.status(400).json({
-                status: "fail",
-                message: "Invalid input data",
-                errors: err.errors
-            });
-        }
-
-        console.error("Error adding project:", err.message);
-        return res.status(500).json({
-            status: "error",
-            message: "Server error",
-            error: err.message
-        });
-    }
-};
-
-const updateProject = async (req, res) => {
-    try {
-        const { projectId } = req.params;
-
-        const updatedProject = await Project.findByIdAndUpdate(projectId, { $set: { ...req.body } }, { new: true });
-
-        if (!updatedProject) {
-            return res.status(404).json({
-                status: 'fail',
-                message: "Project not found"
-            });
-        }
-
-        return res.status(200).json({
-            status: 'success',
-            data: {
-                message: "Project updated successfully"
-            }
+            message: 'Project added successfully',
+            data: newProject
         });
 
     } catch (error) {
-        console.error("Error updating project:", error.message);
+        console.error(error);
         return res.status(500).json({
             status: 'error',
-            message: "Server error",
+            message: 'Server error',
             error: error.message
         });
     }
@@ -125,61 +51,64 @@ const updateProject = async (req, res) => {
 const deleteProject = async (req, res) => {
     try {
         const { projectId } = req.params;
-        const deletedProject = await Project.findByIdAndDelete(projectId);
 
-        if (!deletedProject) {
-            return res.status(404).json({
-                status: "fail",
-                message: "Project not found"
+        if (!projectId) {
+            return res.status(400).json({ 
+                status: 'fail', 
+                message: 'Project ID is required' 
             });
         }
 
-        res.status(200).json({
-            status: "success",
-            message: "Project deleted successfully"
+        const user = await User.findById(req.currentUser.id);
+
+        if (!user) {
+            return res.status(404).json({ 
+                status: 'fail', 
+                message: 'User not found' 
+            });
+        }
+
+        const project = user.projects.find(p => p._id.toString() === projectId);
+
+        if (!project) {
+            return res.status(404).json({ 
+                status: 'fail', 
+                message: 'Project not found' 
+            });
+        }
+
+        if (project.poster && project.poster.length > 0) {
+            for (const posterPath of project.poster) {
+                const fullPath = path.join(__dirname, '..', posterPath);
+                try {
+                    await fs.unlink(fullPath);
+                } catch (err) {
+                    console.error(`Failed to delete poster image: ${posterPath}`, err.message);
+                }
+            }
+        }
+
+        user.projects = user.projects.filter(p => p._id.toString() !== projectId);
+
+        await user.save();
+
+        return res.status(200).json({
+            status: 'success',
+            message: 'Project deleted successfully'
         });
 
     } catch (error) {
         console.error("Error deleting project:", error.message);
-        res.status(500).json({
-            status: "error",
-            message: "Server error",
+        return res.status(500).json({
+            status: 'error',
+            message: 'Server error',
             error: error.message
         });
     }
 };
 
-const deleteAllProjects = async (req, res) => {
-    try {
-        const result = await Project.deleteMany({});
-        
-        if (result.deletedCount === 0) {
-            return res.status(404).json({
-                status: "fail",
-                message: "No projects to delete"
-            });
-        }
-
-        res.status(200).json({
-            status: "success",
-            message: "All projects deleted successfully"
-        });
-
-    } catch (error) {
-        console.error("Error deleting all projects:", error.message);
-        res.status(500).json({
-            status: "error",
-            message: "Server error",
-            error: error.message
-        });
-    }
-};
 
 module.exports = {
-    getAllProjects,
-    getProject,
     addProject,
-    updateProject,
-    deleteProject,
-    deleteAllProjects
+    deleteProject
 }
