@@ -36,7 +36,7 @@ const upload = multer({
 
 
 router.route('/add-project')
-    .post(verifyToken, allowedToAdmin, upload.array('poster', 5), addProject)
+    .post(verifyToken, allowedToAdmin, upload.array('poster', 20), addProject)
 
 router.delete('/delete-project/:projectId', verifyToken, allowedToAdmin, deleteProject);
 
