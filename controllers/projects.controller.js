@@ -5,6 +5,8 @@ const User = require('../models/user.model');
 const addProject = async (req, res) => {
     try {
         const { title, description, technologies, types, githubRepo, liveDemo } = req.body;
+        console.log(req.files);
+        console.log(req.body);
 
         const userId = req.currentUser?.id;
         if (!userId) {

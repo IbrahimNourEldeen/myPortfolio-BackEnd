@@ -1,6 +1,6 @@
-const express=require('express');
-const router= express.Router();
-const { addProject, deleteProject }=require('../controllers/projects.controller')
+const express = require('express');
+const router = express.Router();
+const { addProject, deleteProject } = require('../controllers/projects.controller')
 const multer = require('multer');
 const path = require('path');
 const verifyToken = require('../middleware/verifyToken')
@@ -9,8 +9,12 @@ const allowedToAdmin = require('../middleware/allowedToAdmin')
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
+        const fs = require('fs');
         const uploadPath = path.join(__dirname, '..', 'uploads', 'projects');
-        cb(null, uploadPath);
+
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+        }
     },
     filename: (req, file, cb) => {
         const ext = path.extname(file.originalname);
@@ -19,7 +23,7 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ 
+const upload = multer({
     storage,
     fileFilter: (req, file, cb) => {
         const allowedExtensions = ['.jpg', '.jpeg', '.png'];
@@ -39,7 +43,6 @@ router.route('/add-project')
     .post(verifyToken, allowedToAdmin, upload.array('poster', 20), addProject)
 
 router.delete('/delete-project/:projectId', verifyToken, allowedToAdmin, deleteProject);
-
 
 
 
