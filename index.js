@@ -14,16 +14,19 @@ const availableData = require('./routes/availableData.route')
 const skillRoutes = require('./routes/skills.route')
 const socialRoutes = require("./routes/social.route")
 const herroRoutes = require("./routes/herro.route")
-const experienceRoutes=require('./routes/experiences.route')
-const educationRoutes=require('./routes/education.route')
+const experienceRoutes = require('./routes/experiences.route')
+const educationRoutes = require('./routes/education.route')
+const cookieParser = require('cookie-parser');
+
+app.use(cookieParser());
 
 app.use(cors({
     origin: '*',
-    credentials: true 
-  }));
+    credentials: true
+}));
 
 
-app.use('/uploads',express.static(path.join(__dirname,'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(express.json())
 
@@ -42,11 +45,11 @@ app.use("/api/users", usersRoutes)
 
 app.use("/api", token)
 
-app.use('/api/cv',cv)
+app.use('/api/cv', cv)
 
-app.use('/api',avatar)
+app.use('/api', avatar)
 
-app.use('/api',availableData)
+app.use('/api', availableData)
 
 app.use('/api/skills', skillRoutes)
 
