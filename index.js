@@ -21,7 +21,7 @@ const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
 app.use(cors({
-    origin: '*',
+    origin: [ 'http://localhost:3000', 'https://ins-five-wheat.vercel.app/' ],
     credentials: true
 }));
 
