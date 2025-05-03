@@ -21,10 +21,12 @@ const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
 app.use(cors({
-    origin: [ 'http://localhost:3000', 'https://ins-five-wheat.vercel.app/' ],
+    origin: [
+        'http://localhost:3000',
+        'https://ins-five-wheat.vercel.app'
+    ],
     credentials: true
 }));
-
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
