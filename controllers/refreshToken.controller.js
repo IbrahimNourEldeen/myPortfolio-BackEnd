@@ -5,42 +5,43 @@ const { generateAccessToken } = require('../utils/generateJwt');
 module.exports = async (req, res) => {
     try {
         const { refreshToken } = req.cookies;
+        res.json(refreshToken)
 
-        if (!refreshToken) {
-            return res.status(401).json({
-                status: "fail",
-                message: "Refresh token is required"
-            });
-        }
+        // if (!refreshToken) {
+        //     return res.status(401).json({
+        //         status: "fail",
+        //         message: "Refresh token is required"
+        //     });
+        // }
 
-        jwt.verify(refreshToken, process.env.REFRESH_SEKRET_KEY, async (err, decoded) => {
-            if (err) {
-                return res.status(403).json({
-                    status: "fail",
-                    message: "Invalid or expired refresh token"
-                });
-            }
+        // jwt.verify(refreshToken, process.env.REFRESH_SEKRET_KEY, async (err, decoded) => {
+        //     if (err) {
+        //         return res.status(403).json({
+        //             status: "fail",
+        //             message: "Invalid or expired refresh token"
+        //         });
+        //     }
 
-            const user = await User.findOne({ email: decoded.email });
-            if (!user || user.refreshToken !== refreshToken) {
-                return res.status(403).json({
-                    status: "fail",
-                    message: "Invalid refresh token"
-                });
-            }
+        //     const user = await User.findOne({ email: decoded.email });
+        //     if (!user || user.refreshToken !== refreshToken) {
+        //         return res.status(403).json({
+        //             status: "fail",
+        //             message: "Invalid refresh token"
+        //         });
+        //     }
 
-            const newAccessToken = generateAccessToken({
-                username: decoded.username,
-                email: decoded.email,
-                role: decoded.role,
-                id: decoded.id
-            });
+        //     const newAccessToken = generateAccessToken({
+        //         username: decoded.username,
+        //         email: decoded.email,
+        //         role: decoded.role,
+        //         id: decoded.id
+        //     });
 
-            return res.status(200).json({
-                status: "success",
-                data: { accessToken: newAccessToken }
-            });
-        });
+        //     return res.status(200).json({
+        //         status: "success",
+        //         data: { accessToken: newAccessToken }
+        //     });
+        // });
 
     } catch (error) {
         console.error("Error refreshing token:", error);
