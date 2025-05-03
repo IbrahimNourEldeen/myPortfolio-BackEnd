@@ -5,7 +5,7 @@ const { generateAccessToken } = require('../utils/generateJwt');
 module.exports = async (req, res) => {
     try {
         const { refreshToken } = req.cookies;
-        res.json(refreshToken)
+        res.json("hhhhhhhhhhhhhh",refreshToken)
 
         // if (!refreshToken) {
         //     return res.status(401).json({
