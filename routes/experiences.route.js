@@ -1,15 +1,16 @@
 const express = require('express');
-const { addExperience, deleteExperience } = require('../controllers/experiences.controller');
+const { addExperience, getExperiences, updateExperience, deleteExperience } = require('../controllers/experiences.controller');
 const verifyToken = require('../middleware/verifyToken');
 const allowedToAdmin = require('../middleware/allowedToAdmin');
 
 const router = express.Router();
 
-
 router.route('/')
-.post(verifyToken, allowedToAdmin, addExperience)
+    .get(getExperiences)
+    .post(verifyToken, allowedToAdmin, addExperience);
 
+router.route('/:expId')
+    .put(verifyToken, allowedToAdmin, updateExperience)
+    .delete(verifyToken, allowedToAdmin, deleteExperience);
 
-router.delete('/:expIndex', verifyToken, allowedToAdmin, deleteExperience)
-
-module.exports = router
+module.exports = router;

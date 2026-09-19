@@ -41,9 +41,39 @@ const getMessage = async (req, res) => {
     }
 }
 
+const validator = require('validator');
+
 const addMessage = async (req, res) => {
     try {
-        const newMessage = new Message(req.body);
+        const { fullName, contactInfo, message } = req.body;
+
+        if (!fullName || !contactInfo || !message) {
+            return res.status(400).json({
+                status: "fail",
+                data: {
+                    message: "fullName, contactInfo, and message are required"
+                }
+            });
+        }
+
+        // Validate that contactInfo is either a valid email or looks like a phone number (digits, +, -, spaces)
+        const isEmail = validator.isEmail(contactInfo);
+        const isPhone = /^[0-9+\-\s]+$/.test(contactInfo) && contactInfo.replace(/[^0-9]/g, '').length >= 7;
+
+        if (!isEmail && !isPhone) {
+            return res.status(400).json({
+                status: "fail",
+                data: {
+                    message: "contactInfo must be a valid email or phone number"
+                }
+            });
+        }
+
+        const newMessage = new Message({
+            fullName,
+            contactInfo,
+            message
+        });
 
         await newMessage.save();
 
@@ -55,7 +85,6 @@ const addMessage = async (req, res) => {
         });
 
     } catch (err) {
-
         if (err.name === "ValidationError") {
             return res.status(400).json({
                 status: "fail",
@@ -65,7 +94,6 @@ const addMessage = async (req, res) => {
                 }
             });
         }
-
         return res.status(500).json({ status: "error", message: "Server error" });
     }
 }

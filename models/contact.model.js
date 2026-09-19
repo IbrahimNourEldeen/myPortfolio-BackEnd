@@ -1,23 +1,25 @@
 const mongoose = require('mongoose');
-const validator = require('validator')
 
 const messageSchema = mongoose.Schema({
-    name: {
+    fullName: {
         type: String,
-        required: 1,
+        required: true,
     },
-    email: {
+    contactInfo: {
         type: String,
-        required: 1,
-        validate: [validator.isEmail, "must be a valid email"]
+        required: true,
     },
     message: {
         type: String,
         required: true,
     },
-    createdAt: {
+    date: {
         type: Date,
-        default:Date.now,
+        default: Date.now,
+    },
+    is_active: {
+        type: Boolean,
+        default: false,
     }
 });
 

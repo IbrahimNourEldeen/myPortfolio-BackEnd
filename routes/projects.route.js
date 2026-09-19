@@ -1,49 +1,52 @@
 const express = require('express');
-const router = express.Router();
-const { addProject, deleteProject } = require('../controllers/projects.controller')
+const { addProject, getProjects, updateProject, deleteProject, deleteProjectImage } = require('../controllers/projects.controller');
+const verifyToken = require('../middleware/verifyToken');
+const allowedToAdmin = require('../middleware/allowedToAdmin');
 const multer = require('multer');
+const fs = require('fs');
 const path = require('path');
-const verifyToken = require('../middleware/verifyToken')
-const allowedToAdmin = require('../middleware/allowedToAdmin')
 
+const uploadDir = path.join(__dirname, '../uploads/projects');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const fs = require('fs');
-        const uploadPath = path.join(__dirname, '..', 'uploads', 'projects');
-
-        if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath, { recursive: true });
-        }
+    destination: function (req, file, cb) {
+        cb(null, uploadDir);
     },
-    filename: (req, file, cb) => {
+    filename: function (req, file, cb) {
         const ext = path.extname(file.originalname);
-        const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-        cb(null, uniqueName);
-    }
+        const fileName = `project-${Date.now()}-${Math.round(Math.random() * 1E9)}${ext}`;
+        cb(null, fileName);
+    },
 });
+
+const fileFilter = (req, file, cb) => {
+    const fileType = file.mimetype.split('/')[0];
+    if (fileType === 'image') {
+        cb(null, true);
+    } else {
+        cb(new Error('File must be an image'), false);
+    }
+};
 
 const upload = multer({
-    storage,
-    fileFilter: (req, file, cb) => {
-        const allowedExtensions = ['.jpg', '.jpeg', '.png'];
-        const ext = path.extname(file.originalname).toLowerCase();
-        const mimeType = file.mimetype;
-
-        if (!allowedExtensions.includes(ext) || !mimeType.startsWith('image/')) {
-            cb(new Error('Only JPG, PNG, and JPEG are allowed.'));
-        } else {
-            cb(null, true);
-        }
-    }
+    storage: storage,
+    fileFilter: fileFilter,
 });
 
+const router = express.Router();
 
-router.route('/add-project')
-    .post(verifyToken, allowedToAdmin, upload.array('poster', 20), addProject)
+router.route('/')
+    .get(getProjects)
+    .post(verifyToken, allowedToAdmin, upload.array('poster'), addProject);
 
-router.delete('/delete-project/:projectId', verifyToken, allowedToAdmin, deleteProject);
+router.route('/:projectId')
+    .put(verifyToken, allowedToAdmin, upload.array('poster'), updateProject)
+    .delete(verifyToken, allowedToAdmin, deleteProject);
 
+router.route('/:projectId/images/:imageIndex')
+    .delete(verifyToken, allowedToAdmin, deleteProjectImage);
 
-
-module.exports=router;
+module.exports = router;
