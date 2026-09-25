@@ -177,8 +177,7 @@ const getCoreProfile = async (req, res) => {
     }
 };
 
-const fs = require('fs');
-const path = require('path');
+const axios = require('axios');
 
 const syncPortfolioData = async (req, res) => {
     try {
@@ -285,13 +284,51 @@ const syncPortfolioData = async (req, res) => {
             education
         };
 
-        const targetPath = path.join(__dirname, '../../myPortfolio-FrontEnd/public/data.json');
-        
-        fs.writeFileSync(targetPath, JSON.stringify({ status: "success", data: fullData }, null, 2));
+        // ── GitHub API Sync ──────────────────────────────────────────────
+        const GITHUB_TOKEN     = process.env.GITHUB_TOKEN;
+        const GITHUB_OWNER     = process.env.GITHUB_REPO_OWNER;
+        const GITHUB_REPO      = process.env.GITHUB_REPO_NAME;
+        const GITHUB_FILE_PATH = process.env.GITHUB_FILE_PATH || 'public/data.json';
+        const GITHUB_BRANCH    = process.env.GITHUB_BRANCH    || 'main';
+
+        const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+
+        const headers = {
+            Authorization: `Bearer ${GITHUB_TOKEN}`,
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+        };
+
+        // جلب الـ sha الحالي للملف (مطلوب من GitHub API للتحديث)
+        let currentSha = null;
+        try {
+            const getResponse = await axios.get(`${apiUrl}?ref=${GITHUB_BRANCH}`, { headers });
+            currentSha = getResponse.data.sha;
+        } catch (getError) {
+            // الملف غير موجود بعد - سيتم إنشاؤه لأول مرة
+            if (getError.response?.status !== 404) {
+                throw new Error(`GitHub GET error: ${getError.response?.data?.message || getError.message}`);
+            }
+        }
+
+        // تحويل المحتوى إلى base64 (مطلوب من GitHub API)
+        const fileContent = JSON.stringify({ status: "success", data: fullData }, null, 2);
+        const contentBase64 = Buffer.from(fileContent).toString('base64');
+
+        const syncDate = new Date().toISOString();
+        const putBody = {
+            message: `chore: sync portfolio data [${syncDate}]`,
+            content: contentBase64,
+            branch: GITHUB_BRANCH,
+            ...(currentSha && { sha: currentSha }),
+        };
+
+        await axios.put(apiUrl, putBody, { headers });
+        // ────────────────────────────────────────────────────────────────
 
         res.status(200).json({
             status: "success",
-            message: "Portfolio data successfully synced to data.json!"
+            message: "Portfolio data synced to GitHub successfully! Vercel will rebuild shortly."
         });
 
     } catch (error) {
