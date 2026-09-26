@@ -19,6 +19,14 @@ const projectSchema = new mongoose.Schema({
     githubRepo: String,
     liveDemo: String,
     poster: [String],
+    priority: {
+        type: Number,
+        default: 0
+    },
+    isFeatured: {
+        type: Boolean,
+        default: false
+    },
     createdAt: {
         type: Date,
         default: Date.now

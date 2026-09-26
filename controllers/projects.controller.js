@@ -5,7 +5,7 @@ const ProjectType = require('../models/projectType.model');
 
 const addProject = async (req, res) => {
     try {
-        const { typeId, titleAr, titleEn, descriptionAr, descriptionEn, technologies, githubRepo, liveDemo } = req.body;
+        const { typeId, titleAr, titleEn, descriptionAr, descriptionEn, technologies, githubRepo, liveDemo, priority, isFeatured } = req.body;
         const userId = req.currentUser?.id;
 
         if (!userId) {
@@ -36,7 +36,9 @@ const addProject = async (req, res) => {
             technologies: Array.isArray(technologies) ? technologies : (technologies ? technologies.split(',').map(tech => tech.trim()) : []),
             githubRepo,
             liveDemo,
-            poster: posterPaths
+            poster: posterPaths,
+            priority: priority !== undefined ? Number(priority) : 0,
+            isFeatured: isFeatured === true || isFeatured === 'true'
         });
 
         await newProject.save();
@@ -74,7 +76,7 @@ const updateProject = async (req, res) => {
     try {
         const { projectId } = req.params;
         const userId = req.currentUser.id;
-        const { typeId, titleAr, titleEn, descriptionAr, descriptionEn, technologies, githubRepo, liveDemo } = req.body;
+        const { typeId, titleAr, titleEn, descriptionAr, descriptionEn, technologies, githubRepo, liveDemo, priority, isFeatured } = req.body;
 
         const project = await Project.findOne({ _id: projectId, userId });
         if (!project) {
@@ -91,6 +93,8 @@ const updateProject = async (req, res) => {
         if (descriptionEn !== undefined) project.descriptionEn = descriptionEn;
         if (githubRepo !== undefined) project.githubRepo = githubRepo;
         if (liveDemo !== undefined) project.liveDemo = liveDemo;
+        if (priority !== undefined) project.priority = Number(priority);
+        if (isFeatured !== undefined) project.isFeatured = isFeatured === true || isFeatured === 'true';
 
         if (technologies !== undefined) {
             project.technologies = Array.isArray(technologies) 
