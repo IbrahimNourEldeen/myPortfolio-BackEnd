@@ -76,7 +76,7 @@ const updateProject = async (req, res) => {
     try {
         const { projectId } = req.params;
         const userId = req.currentUser.id;
-        const { typeId, titleAr, titleEn, descriptionAr, descriptionEn, technologies, githubRepo, liveDemo, priority, isFeatured } = req.body;
+        const { typeId, titleAr, titleEn, descriptionAr, descriptionEn, technologies, githubRepo, liveDemo, priority, isFeatured, existingImages } = req.body;
 
         const project = await Project.findOne({ _id: projectId, userId });
         if (!project) {
@@ -102,10 +102,31 @@ const updateProject = async (req, res) => {
                 : technologies.split(',').map(tech => tech.trim()).filter(Boolean);
         }
 
+        let updatedPosters = project.poster || [];
+        if (existingImages !== undefined) {
+            try {
+                const parsedExisting = JSON.parse(existingImages);
+                
+                // Identify removed images to delete from disk (optional but good practice)
+                const removedImages = updatedPosters.filter(img => !parsedExisting.includes(img));
+                const fs = require('fs').promises;
+                const path = require('path');
+                for (const removed of removedImages) {
+                    const fullPath = path.join(__dirname, '..', removed);
+                    await fs.unlink(fullPath).catch(() => {});
+                }
+                
+                updatedPosters = parsedExisting;
+            } catch (err) {
+                console.error("Error parsing existingImages", err);
+            }
+        }
+
         if (req.files && req.files.length > 0) {
             const newPosters = req.files.map(file => `/uploads/projects/${file.filename}`);
-            project.poster = [...(project.poster || []), ...newPosters];
+            updatedPosters = [...updatedPosters, ...newPosters];
         }
+        project.poster = updatedPosters;
 
         await project.save();
 
